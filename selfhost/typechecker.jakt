@@ -787,7 +787,8 @@ struct Typechecker {
             errors
         )
 
-        typechecker.create_scope(parent_scope_id: None, can_throw: false)
+        let none: ScopeId? = None
+        typechecker.create_scope(parent_scope_id: none, can_throw: false)
 
         typechecker.typecheck_module(parsed_namespace, scope_id: ScopeId(module: root_module_id, id: 0))
 
