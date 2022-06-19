@@ -2220,6 +2220,28 @@ struct Typechecker {
         return None
     }
 
+    function resolve_type_var(this, type_var: TypeId, scope_id: ScopeId) -> TypeId {
+        mut type_id = type_var;
+        loop {
+            match .get_type(type_id) {
+                TypeVariable(type_name) => {
+                    let id = .find_type_in_scope(scope_id, name: type_name)
+                    if not id.has_value() {
+                        return type_id
+                    }
+
+                    if type_id.equals(id!) {
+                        return type_id
+                    }
+
+                    type_id = id!
+                }
+                else => { return type_id }
+            }
+        }
+        return TypeId(module: ModuleId(id: 0), id: 0)
+    }
+
     function resolve_call(mut this, call: ParsedCall, namespaces: [ResolvedNamespace], span: Span, scope_id: ScopeId, must_be_enum_constructor: bool) throws -> FunctionId? {
         mut callee: FunctionId? = None
         mut current_scope_id = scope_id
