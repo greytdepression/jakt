@@ -1812,10 +1812,6 @@ struct Typechecker {
         If(condition, then_block, else_statement) => .typecheck_if(condition, then_block, else_statement, scope_id, safety_mode)
         For(iterator_name, name_span, range, block) => .typecheck_for(iterator_name, name_span, range, block, scope_id, safety_mode)
         Garbage => CheckedStatement::Garbage
-        else => {
-            todo(format("typecheck_statement else: {}", statement))
-            yield CheckedStatement::Garbage
-        }
     }
 
     function typecheck_for(mut this, iterator_name: String, name_span: Span, range: ParsedExpression, block: ParsedBlock, scope_id: ScopeId, safety_mode: SafetyMode) throws -> CheckedStatement {
@@ -1888,12 +1884,14 @@ struct Typechecker {
             }
         }
 
+        let no_statement: ParsedStatement? = None
+
         let rewritten_statement = ParsedStatement::Block(
             ParsedBlock(
                 stmts: [
                     // let (mut) _magic = expr
                     ParsedStatement::VarDecl(
-                        statement: ParsedVarDecl(
+                        var: ParsedVarDecl(
                             name: "_magic"
                             parsed_type: ParsedType::Empty
                             is_mutable: iterable_should_be_mutable
@@ -1907,7 +1905,7 @@ struct Typechecker {
                             stmts: [
                                 // let x = _magic.next()
                                 ParsedStatement::VarDecl(
-                                    statement: ParsedVarDecl(
+                                    var: ParsedVarDecl(
                                         name: "_magic_value"
                                         parsed_type: ParsedType::Empty
                                         is_mutable: iterable_should_be_mutable
@@ -1953,11 +1951,11 @@ struct Typechecker {
                                             ParsedStatement::Break
                                         ]
                                     )
-                                    else_statement: None
+                                    else_statement: no_statement
                                 ),
                                 // let iterator_name = x!
                                 ParsedStatement::VarDecl(
-                                    statement: ParsedVarDecl(
+                                    var: ParsedVarDecl(
                                         name: iterator_name
                                         parsed_type: ParsedType::Empty
                                         is_mutable: iterable_should_be_mutable
